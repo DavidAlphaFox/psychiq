@@ -58,10 +58,10 @@
                             :manager manager
                             :timeout timeout)))
     manager))
-
+;; 创建处理进程
 (defun make-child-processors (manager)
-  (bt:with-recursive-lock-held ((manager-lock manager))
-    (setf (manager-children manager)
+  (bt:with-recursive-lock-held ((manager-lock manager)) ;;先锁定管理器
+    (setf (manager-children manager) ;; 创建一组处理器
           (loop repeat (manager-count manager)
                 collect (funcall (manager-make-processor-fn manager))))))
 
@@ -115,9 +115,9 @@
     (processor-stopped manager processor)))
 
 (defmethod start ((manager manager))
-  (setf (manager-stopped-p manager) nil)
-  (make-child-processors manager)
-  (map nil #'start (manager-children manager))
+  (setf (manager-stopped-p manager) nil) ;; 标志manager非停止
+  (make-child-processors manager) ;; 创建处理器
+  (map nil #'start (manager-children manager)) ;; 调用处理器的start函数
   manager)
 
 (defmethod stop ((manager manager))

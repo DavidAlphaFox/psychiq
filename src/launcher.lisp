@@ -26,7 +26,7 @@
   manager
   scheduled
   heartbeat)
-
+;; 创建manager scheduler 和 heartbeat监控
 (defun make-launcher (&key (host *default-redis-host*) (port *default-redis-port*) db
                       (concurrency 25) (queue *default-queue-name*)
                       (interval 5))
@@ -51,7 +51,7 @@
               (manager-count manager)
               (manager-queues manager)
               (launcher-status launcher)))))
-
+;; 启动任务队列
 (defun run (&rest initargs
             &key host port db (concurrency 25) queue)
   (declare (ignore host port db concurrency queue))
@@ -63,7 +63,7 @@
     (when (bt:threadp thread)
       (bt:join-thread thread)))
   t)
-
+;; 任务队列启动函数，先启动管理器，然后在启动调度器，最后启动心跳管理
 (defun start (launcher)
   (psychiq.launcher.manager:start (launcher-manager launcher))
   (psychiq.launcher.scheduled:start (launcher-scheduled launcher))

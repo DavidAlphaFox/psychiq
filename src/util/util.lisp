@@ -23,7 +23,7 @@
 
 (defun generate-random-id (&optional (length 12))
   (format nil "~(~36,6,'0R~)" (random (expt 36 length))))
-
+;; 获取进程的PID
 (defun getpid ()
   #+sbcl (sb-unix:unix-getpid)
   #+ccl (ccl::getpid)

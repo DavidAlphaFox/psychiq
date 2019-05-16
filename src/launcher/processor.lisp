@@ -57,7 +57,7 @@
       (format stream "QUEUES: ~A / STATUS: ~A"
               queues
               status))))
-
+;; 创建处理器
 (defun make-processor (&key (host *default-redis-host*) (port *default-redis-port*) db
                          queues manager (timeout 5))
   (unless (and (listp queues)
@@ -65,7 +65,7 @@
     (error ":queues must be a list containing at least one queue name"))
   (let ((conn (make-connection :host host :port port :db db)))
     (%make-processor :connection conn :queues queues :manager manager :timeout timeout)))
-
+;; 获取任务
 (defgeneric fetch-job (processor)
   (:method ((processor processor))
     (handler-bind ((redis:redis-connection-error
@@ -78,7 +78,7 @@
                                     e)
                          (disconnect (processor-connection processor)))
                        (sleep 1)
-                       (return-from fetch-job nil))))
+                       (return-from fetch-job nil)))) ;; 出现redis-connection-error 
       (multiple-value-bind (job-info queue)
           (with-connection (processor-connection processor)
             (dequeue-from-queue (shuffle
@@ -99,30 +99,30 @@
 (defgeneric run (processor)
   (:method ((processor processor))
     (loop
-      while (eq (processor-status processor) :running)
-      do (multiple-value-bind (job-info queue)
+      while (eq (processor-status processor) :running) ;; 确认状态后一直循环
+      do (multiple-value-bind (job-info queue) ;; 获取任务信息和队列名称
              (fetch-job processor)
            (when job-info
              (process-job processor queue job-info))))))
 
 (defgeneric finalize (processor)
   (:method ((processor processor))
-    (disconnect (processor-connection processor))
-    (setf (processor-thread processor) nil)
-    (setf (processor-status processor) :stopped)
+    (disconnect (processor-connection processor)) ;; 关闭redis链接
+    (setf (processor-thread processor) nil) ;; 取消关联线程
+    (setf (processor-status processor) :stopped) ;; 设置状态为停止
     t))
 
 (defgeneric start (processor)
   (:method ((processor processor))
-    (setf (processor-status processor) :running)
-    (setf (processor-thread processor)
+    (setf (processor-status processor) :running) ;; 更新处理器的状态
+    (setf (processor-thread processor) ;; 设置处理器绑定的线程
           (bt:make-thread
            (lambda ()
              (unwind-protect
                   (progn
-                    (ensure-connected (processor-connection processor))
+                    (ensure-connected (processor-connection processor)) ;;确保redis链接
                     (run processor))
-               (finalize processor)))
+               (finalize processor))) ;; 发生异常的时候，需要对相应处理器进行释放
            :initial-bindings `((*standard-output* . ,*standard-output*)
                                (*error-output* . ,*error-output*))
            :name "psychiq processor"))

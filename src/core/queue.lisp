@@ -30,7 +30,7 @@
               (princ-to-string at)
               (encode-object job-info)))
   job-info)
-
+;; 从队列中获取一个元素
 (defun dequeue-from-queue (queue-or-queues &key (timeout 5))
   (let ((ret
           (apply #'red:blpop

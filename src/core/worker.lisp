@@ -23,7 +23,7 @@
 (in-package :psychiq.worker)
 
 (defclass worker () ())
-
+;; 集成类会真正执行任务
 (defgeneric perform (worker &rest args)
   (:method ((worker worker) &rest args)
     (declare (ignore args))
